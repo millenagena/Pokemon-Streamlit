@@ -1,5 +1,8 @@
 import requests
-import streamlit
+import streamlit as st
+
+def get_pokemon_by_name(name):
+    return requests.get(f'https://pokeapi.co/api/v2/pokemon/{name}')
 
 def extrai_tipos(tipos):
     tipo1 = tipos[0]['type']['name']
@@ -48,3 +51,23 @@ def pokemon_from_api(response):
         'evolucao3': extrai_evolucao(evolucoes)[2],
         'imagem': imagem
     }
+
+st.title('Pokemons')
+nome_pokemon = st.text_input('Digite o nome do Pokemon:')
+coluna1, coluna2, coluna3 = st.columns(3)
+
+if(nome_pokemon):
+    response = get_pokemon_by_name(nome_pokemon)
+    infos_pokemon = pokemon_from_api(response)
+    imagem_pokemon = infos_pokemon.pop('imagem')
+    with coluna1:
+        st.image(imagem_pokemon, width=128)
+    with coluna2:
+        for chave, valor in infos_pokemon.items():
+            st.text(f'{chave.title()}: {valor}')
+    
+   
+    
+
+
+
