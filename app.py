@@ -33,8 +33,8 @@ def pokemon_from_api(response):
     tipos = infos['types']
     nome = infos['name']
     imagem = infos['sprites']['front_default']
-    habilidade = (infos['abilities'][0]['ability']['name'], 
-                  infos['abilities'][0]['ability']['url'])
+    habilidade = [infos['abilities'][0]['ability']['name'], 
+                  infos['abilities'][0]['ability']['url']]
     movimentos = [(move['move']['name'], move['move']['url']) for move in infos['moves']]
     evolucoes = infos['species']['url']
     return {
@@ -42,9 +42,9 @@ def pokemon_from_api(response):
         'nome':nome,
         'tipo1':extrai_tipos(tipos)[0],
         'tipo2':extrai_tipos(tipos)[1],
-        'peso': peso,
-        'altura': altura,
-        'habilidade': f'{habilidade}',
+        'peso': float(peso),
+        'altura': float(altura),
+        'habilidade': habilidade,
         'movimentos': f'{movimentos}',
         'evolucao1': extrai_evolucao(evolucoes)[0],
         'evolucao2': extrai_evolucao(evolucoes)[1],
@@ -53,21 +53,33 @@ def pokemon_from_api(response):
     }
 
 st.title('Pokemons')
-nome_pokemon = st.text_input('Digite o nome do Pokemon:')
-coluna1, coluna2, coluna3 = st.columns(3)
+nome_pokemon = st.text_input('Digite o nome do Pokemon:').lower()
+
 
 if(nome_pokemon):
     response = get_pokemon_by_name(nome_pokemon)
     infos_pokemon = pokemon_from_api(response)
-    imagem_pokemon = infos_pokemon.pop('imagem')
-    with coluna1:
-        st.image(imagem_pokemon, width=128)
-    with coluna2:
-        for chave, valor in infos_pokemon.items():
-            st.text(f'{chave.title()}: {valor}')
-    
-   
-    
-
-
-
+    habilidade_pokemon = requests.get(infos_pokemon['habilidade'][1]).json()
+    for descricao in habilidade_pokemon['effect_entries']:
+        if descricao['language']['name'] == 'en':
+            descricao_habilidade = descricao['short_effect']
+    st.title(f'{infos_pokemon["nome"].title()} - Nº {infos_pokemon["id"]}')
+    with st.container():
+        coluna1, coluna2 = st.columns(2)
+        with coluna1:
+            st.image(infos_pokemon['imagem'], width=128)
+            st.markdown('#### Tipos')
+            st.markdown(infos_pokemon['tipo1'].title())
+            if infos_pokemon['tipo2']:
+                st.markdown(infos_pokemon['tipo2'].title())
+        with coluna2:
+            st.markdown('#### Altura')
+            st.markdown(infos_pokemon["altura"])
+            st.markdown('#### Peso')
+            st.markdown(infos_pokemon["peso"])
+            st.markdown('#### Habilidade')
+            with st.expander(infos_pokemon["habilidade"][0].title()):
+                st.markdown(descricao_habilidade)
+    with st.container():
+        coluna1, coluna2, coluna3
+            
