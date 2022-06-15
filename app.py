@@ -12,18 +12,28 @@ def extrai_tipos(tipos):
         tipo2 = None
     return [tipo1, tipo2]
 
+def extrai_imagem(response):
+    imagem = response.json()['sprites']['front_default']
+    return imagem
+
 def extrai_evolucao(evolucoes):
     url_evolution = requests.get(evolucoes).json()['evolution_chain']['url']
-    primeiro_pokemon = requests.get(url_evolution).json()['chain']['species']['name']
+    infos_evolucoes_pokemon = requests.get(url_evolution).json()
+    primeiro_pokemon = infos_evolucoes_pokemon['chain']['species']['name']
+    imagem_primeiro_pokemon = f'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{infos_evolucoes_pokemon["chain"]["species"]["url"].split("/")[-2]}.png'
     try:
-        segundo_pokemon = requests.get(url_evolution).json()['chain']['evolves_to'][0]['species']['name']
+        segundo_pokemon = infos_evolucoes_pokemon['chain']['evolves_to'][0]['species']['name']
+        imagem_segundo_pokemon = f'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{infos_evolucoes_pokemon["chain"]["evolves_to"][0]["species"]["url"].split("/")[-2]}.png'
     except:
         segundo_pokemon = None
+        imagem_segundo_pokemon = None
     try:
-        terceiro_pokemon = requests.get(url_evolution).json()['chain']['evolves_to'][0]['evolves_to'][0]['species']['name']
+        terceiro_pokemon = infos_evolucoes_pokemon['chain']['evolves_to'][0]['evolves_to'][0]['species']['name']
+        imagem_terceiro_pokemon = f'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{infos_evolucoes_pokemon["chain"]["evolves_to"][0]["evolves_to"][0]["species"]["url"].split("/")[-2]}.png'
     except:
         terceiro_pokemon = None
-    return [primeiro_pokemon, segundo_pokemon, terceiro_pokemon]
+        imagem_terceiro_pokemon= None
+    return [primeiro_pokemon, segundo_pokemon, terceiro_pokemon, imagem_primeiro_pokemon, imagem_segundo_pokemon, imagem_terceiro_pokemon]
 
 def pokemon_from_api(response):
     infos = response.json()
@@ -49,6 +59,9 @@ def pokemon_from_api(response):
         'evolucao1': extrai_evolucao(evolucoes)[0],
         'evolucao2': extrai_evolucao(evolucoes)[1],
         'evolucao3': extrai_evolucao(evolucoes)[2],
+        'img_evolucao1': extrai_evolucao(evolucoes)[3],
+        'img_evolucao2': extrai_evolucao(evolucoes)[4],
+        'img_evolucao3': extrai_evolucao(evolucoes)[5],
         'imagem': imagem
     }
 
@@ -56,6 +69,9 @@ with st.container():
     _,center,_ = st.columns(3)
     with center:
         st.image('https://logosmarcas.net/wp-content/uploads/2020/05/Pokemon-Logo.png', width = 256)
+
+
+        
 nome_pokemon = st.text_input('Digite o nome ou ID do Pokemon:').lower()
 
 try:
@@ -87,16 +103,13 @@ try:
             st.markdown('### Evoluções')
             col1, col2, col3 = st.columns(3)
             with col1:
-                pokemon1 = pokemon_from_api(get_pokemon_by_name(infos_pokemon['evolucao1']))
-                st.image(pokemon1['imagem'], width=128, caption = pokemon1['nome'].title())
+                st.image(infos_pokemon['img_evolucao1'], width=128, caption = infos_pokemon['evolucao1'].title())
             if infos_pokemon['evolucao2']:
                 with col2:
-                    pokemon2 = pokemon_from_api(get_pokemon_by_name(infos_pokemon['evolucao2']))
-                    st.image(pokemon2['imagem'], width=128, caption = pokemon2['nome'].title()) 
+                    st.image(infos_pokemon['img_evolucao2'], width=128, caption = infos_pokemon['evolucao2'].title())
             if infos_pokemon['evolucao3']:
                 with col3:
-                    pokemon3 = pokemon_from_api(get_pokemon_by_name(infos_pokemon['evolucao3']))
-                    st.image(pokemon3['imagem'], width=128, caption=pokemon3['nome'].title())
+                    st.image(infos_pokemon['img_evolucao3'], width=128, caption = infos_pokemon['evolucao3'].title())
                     
 except:
     st.write("Pokémon Inválido")
