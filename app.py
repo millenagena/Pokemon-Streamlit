@@ -22,8 +22,16 @@ def extrai_evolucao(evolucoes):
     primeiro_pokemon = infos_evolucoes_pokemon['chain']['species']['name']
     imagem_primeiro_pokemon = f'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{infos_evolucoes_pokemon["chain"]["species"]["url"].split("/")[-2]}.png'
     try:
-        segundo_pokemon = infos_evolucoes_pokemon['chain']['evolves_to'][0]['species']['name']
-        imagem_segundo_pokemon = f'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{infos_evolucoes_pokemon["chain"]["evolves_to"][0]["species"]["url"].split("/")[-2]}.png'
+        quantidade_evolucoes = len(infos_evolucoes_pokemon['chain']['evolves_to'])
+        if quantidade_evolucoes>1:
+            segundo_pokemon = []
+            imagem_segundo_pokemon = []
+            for i in range(quantidade_evolucoes):
+                segundo_pokemon.append(infos_evolucoes_pokemon['chain']['evolves_to'][i]['species']['name'])
+                imagem_segundo_pokemon.append(f'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{infos_evolucoes_pokemon["chain"]["evolves_to"][i]["species"]["url"].split("/")[-2]}.png')
+        else:
+            segundo_pokemon = infos_evolucoes_pokemon['chain']['evolves_to'][0]['species']['name']
+            imagem_segundo_pokemon = f'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{infos_evolucoes_pokemon["chain"]["evolves_to"][0]["species"]["url"].split("/")[-2]}.png'
     except:
         segundo_pokemon = None
         imagem_segundo_pokemon = None
@@ -101,15 +109,26 @@ try:
                     st.markdown(descricao_habilidade)
         with st.container():
             st.markdown('### Evoluções')
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.image(infos_pokemon['img_evolucao1'], width=128, caption = infos_pokemon['evolucao1'].title())
-            if infos_pokemon['evolucao2']:
+            if not isinstance(infos_pokemon['evolucao2'], list):
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.image(infos_pokemon['img_evolucao1'], width=128, caption = infos_pokemon['evolucao1'].title())
+                if infos_pokemon['evolucao2']:
+                    with col2:
+                        st.image(infos_pokemon['img_evolucao2'], width=128, caption = infos_pokemon['evolucao2'].title())
+                if infos_pokemon['evolucao3']:
+                    with col3:
+                        st.image(infos_pokemon['img_evolucao3'], width=128, caption = infos_pokemon['evolucao3'].title())
+            else:
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.image(infos_pokemon['img_evolucao1'], width=128, caption = infos_pokemon['evolucao1'].title())
                 with col2:
-                    st.image(infos_pokemon['img_evolucao2'], width=128, caption = infos_pokemon['evolucao2'].title())
-            if infos_pokemon['evolucao3']:
+                    for i in range(0,len(infos_pokemon['evolucao2']),2):
+                        st.image(infos_pokemon['img_evolucao2'][i], width=128, caption = infos_pokemon['evolucao2'][i].title())
                 with col3:
-                    st.image(infos_pokemon['img_evolucao3'], width=128, caption = infos_pokemon['evolucao3'].title())
+                    for i in range(1,len(infos_pokemon['evolucao2']),2):
+                        st.image(infos_pokemon['img_evolucao2'][i], width=128, caption = infos_pokemon['evolucao2'][i].title())
                     
 except:
     st.write("Pokémon Inválido")
