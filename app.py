@@ -73,63 +73,100 @@ def pokemon_from_api(response):
         'imagem': imagem
     }
 
+def pokedex(offset):
+    infos = requests.get(f'https://pokeapi.co/api/v2/pokemon/?offset={(offset-1)*20}&limit=20').json()
+    nomes = []
+    ids = []
+    imagens = []
+    for pokemon in infos['results']:
+        nomes.append(pokemon['name'])
+        id = pokemon['url'].split('/')[-2]
+        ids.append(id)
+        imagens.append(f'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{id}.png')
+    
+    return {
+        'nomes': nomes,
+        'ids': ids,
+        'imagens': imagens
+    }
+
+menu = st.sidebar.selectbox('Menu:', ('Pokédex', 'Pesquisa Pokémon'))
+
 with st.container():
     _,center,_ = st.columns(3)
     with center:
         st.image('https://logosmarcas.net/wp-content/uploads/2020/05/Pokemon-Logo.png', width = 256)
 
-
+if menu == 'Pesquisa Pokémon':
         
-nome_pokemon = st.text_input('Digite o nome ou ID do Pokemon:').lower()
+    nome_pokemon = st.text_input('Digite o nome ou ID do Pokemon:').lower()
 
-try:
-    if(nome_pokemon):
-        response = get_pokemon_by_name(nome_pokemon)
-        infos_pokemon = pokemon_from_api(response)
-        habilidade_pokemon = requests.get(infos_pokemon['habilidade'][1]).json()
-        for descricao in habilidade_pokemon['effect_entries']:
-            if descricao['language']['name'] == 'en':
-                descricao_habilidade = descricao['short_effect']
-        st.title(f'{infos_pokemon["nome"].title()} - Nº {infos_pokemon["id"]}')
-        with st.container():
-            coluna1, coluna2 = st.columns(2)
-            with coluna1:
-                st.image(infos_pokemon['imagem'], width=128)
-                st.markdown('#### Tipos')
-                st.markdown(infos_pokemon['tipo1'].title())
-                if infos_pokemon['tipo2']:
-                    st.markdown(infos_pokemon['tipo2'].title())
-            with coluna2:
-                st.markdown('#### Altura')
-                st.markdown(infos_pokemon["altura"])
-                st.markdown('#### Peso')
-                st.markdown(infos_pokemon["peso"])
-                st.markdown('#### Habilidade')
-                with st.expander(infos_pokemon["habilidade"][0].title()):
-                    st.markdown(descricao_habilidade)
-        with st.container():
-            st.markdown('### Evoluções')
-            if not isinstance(infos_pokemon['evolucao2'], list):
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.image(infos_pokemon['img_evolucao1'], width=128, caption = infos_pokemon['evolucao1'].title())
-                if infos_pokemon['evolucao2']:
+    try:
+        if(nome_pokemon):
+            response = get_pokemon_by_name(nome_pokemon)
+            infos_pokemon = pokemon_from_api(response)
+            habilidade_pokemon = requests.get(infos_pokemon['habilidade'][1]).json()
+            for descricao in habilidade_pokemon['effect_entries']:
+                if descricao['language']['name'] == 'en':
+                    descricao_habilidade = descricao['short_effect']
+            st.title(f'{infos_pokemon["nome"].title()} - Nº {infos_pokemon["id"]}')
+            with st.container():
+                coluna1, coluna2 = st.columns(2)
+                with coluna1:
+                    st.image(infos_pokemon['imagem'], width=128)
+                    st.markdown('#### Tipos')
+                    st.markdown(infos_pokemon['tipo1'].title())
+                    if infos_pokemon['tipo2']:
+                        st.markdown(infos_pokemon['tipo2'].title())
+                with coluna2:
+                    st.markdown('#### Altura')
+                    st.markdown(infos_pokemon["altura"])
+                    st.markdown('#### Peso')
+                    st.markdown(infos_pokemon["peso"])
+                    st.markdown('#### Habilidade')
+                    with st.expander(infos_pokemon["habilidade"][0].title()):
+                        st.markdown(descricao_habilidade)
+            with st.container():
+                st.markdown('### Evoluções')
+                if not isinstance(infos_pokemon['evolucao2'], list):
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.image(infos_pokemon['img_evolucao1'], width=128, caption = infos_pokemon['evolucao1'].title())
+                    if infos_pokemon['evolucao2']:
+                        with col2:
+                            st.image(infos_pokemon['img_evolucao2'], width=128, caption = infos_pokemon['evolucao2'].title())
+                    if infos_pokemon['evolucao3']:
+                        with col3:
+                            st.image(infos_pokemon['img_evolucao3'], width=128, caption = infos_pokemon['evolucao3'].title())
+                else:
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.image(infos_pokemon['img_evolucao1'], width=128, caption = infos_pokemon['evolucao1'].title())
                     with col2:
-                        st.image(infos_pokemon['img_evolucao2'], width=128, caption = infos_pokemon['evolucao2'].title())
-                if infos_pokemon['evolucao3']:
+                        for i in range(0,len(infos_pokemon['evolucao2']),2):
+                            st.image(infos_pokemon['img_evolucao2'][i], width=128, caption = infos_pokemon['evolucao2'][i].title())
                     with col3:
-                        st.image(infos_pokemon['img_evolucao3'], width=128, caption = infos_pokemon['evolucao3'].title())
-            else:
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.image(infos_pokemon['img_evolucao1'], width=128, caption = infos_pokemon['evolucao1'].title())
-                with col2:
-                    for i in range(0,len(infos_pokemon['evolucao2']),2):
-                        st.image(infos_pokemon['img_evolucao2'][i], width=128, caption = infos_pokemon['evolucao2'][i].title())
-                with col3:
-                    for i in range(1,len(infos_pokemon['evolucao2']),2):
-                        st.image(infos_pokemon['img_evolucao2'][i], width=128, caption = infos_pokemon['evolucao2'][i].title())
-                    
-except:
-    st.write("Pokémon Inválido")
+                        for i in range(1,len(infos_pokemon['evolucao2']),2):
+                            st.image(infos_pokemon['img_evolucao2'][i], width=128, caption = infos_pokemon['evolucao2'][i].title())
+                        
+    except:
+        st.write("Pokémon Inválido")
+
+if menu == 'Pokédex':
+    pagina = st.number_input('Selecione uma página (1-57)', 1, 57, 1, format='%d')
+
+    infos_pokemons = pokedex(pagina)
+    coluna_pokedex1, coluna_pokedex2, coluna_pokedex3, coluna_pokedex4 = st.columns(4)
+    with coluna_pokedex1:
+        for i in range(0, len(infos_pokemons['nomes']), 4):
+            st.image(infos_pokemons['imagens'][i], width=128, caption = f'{infos_pokemons["nomes"][i].title()} - Nº {infos_pokemons["ids"][i]}')
+    with coluna_pokedex2:
+        for i in range(1, len(infos_pokemons['nomes']), 4):
+            st.image(infos_pokemons['imagens'][i], width=128, caption = f'{infos_pokemons["nomes"][i].title()} - Nº {infos_pokemons["ids"][i]}')
+    with coluna_pokedex3:
+        for i in range(2, len(infos_pokemons['nomes']), 4):
+            st.image(infos_pokemons['imagens'][i], width=128, caption = f'{infos_pokemons["nomes"][i].title()} - Nº {infos_pokemons["ids"][i]}')
+    with coluna_pokedex4:
+        for i in range(3, len(infos_pokemons['nomes']), 4):
+            st.image(infos_pokemons['imagens'][i], width=128, caption = f'{infos_pokemons["nomes"][i].title()} - Nº {infos_pokemons["ids"][i]}')
             
