@@ -63,7 +63,7 @@ def pokemon_from_api(response):
         'peso': float(peso),
         'altura': float(altura),
         'habilidade': habilidade,
-        'movimentos': f'{movimentos}',
+        'movimentos': movimentos,
         'evolucao1': extrai_evolucao(evolucoes)[0],
         'evolucao2': extrai_evolucao(evolucoes)[1],
         'evolucao3': extrai_evolucao(evolucoes)[2],
@@ -148,6 +148,18 @@ if menu == 'Pesquisa Pokémon':
                     with col3:
                         for i in range(1,len(infos_pokemon['evolucao2']),2):
                             st.image(infos_pokemon['img_evolucao2'][i], width=128, caption = infos_pokemon['evolucao2'][i].title())
+            
+            with st.container():
+                botao_moves = st.button('Ver Moves')
+                if botao_moves:
+                    st.markdown('### Moves')
+                    for movimento in infos_pokemon['movimentos']:
+                        info_movimento = requests.get(movimento[1]).json()['effect_entries']
+                        for descricao in info_movimento:
+                            if descricao['language']['name'] == 'en':
+                                descricao_move = descricao['short_effect']
+                        with st.expander(movimento[0].title()):
+                            st.markdown(descricao_move)
                         
     except:
         st.write("Pokémon Inválido")
