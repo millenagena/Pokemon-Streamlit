@@ -1,5 +1,7 @@
 import requests
 import streamlit as st
+import pickle
+import sklearn
 
 def get_pokemon_by_name(name):
     return requests.get(f'https://pokeapi.co/api/v2/pokemon/{name}')
@@ -90,7 +92,7 @@ def pokedex(offset):
         'imagens': imagens
     }
 
-menu = st.sidebar.selectbox('Menu:', ('Pokédex', 'Pesquisa Pokémon'))
+menu = st.sidebar.selectbox('Menu:', ('Pokédex', 'Pesquisa Pokémon', 'Previsão de lendários'))
 
 with st.container():
     _,center,_ = st.columns(3)
@@ -181,4 +183,62 @@ if menu == 'Pokédex':
     with coluna_pokedex4:
         for i in range(3, len(infos_pokemons['nomes']), 4):
             st.image(infos_pokemons['imagens'][i], width=128, caption = f'{infos_pokemons["nomes"][i].title()} - Nº {infos_pokemons["ids"][i]}')
+
+if menu == 'Previsão de lendários':
+    modelo = pickle.load(open('models/modelo_pokemon.sav', 'rb'))
+    st.markdown('### Previsão de Lendários')
+    with st.form('Formulário', clear_on_submit=True):
+        st.markdown('### Status')
+        coluna_a, coluna_b, coluna_c = st.columns(3)
+
+        with coluna_a:
+            hp = st.number_input('HP', min_value=0)
+            attack = st.number_input('Ataque', min_value=0)
+        with coluna_b:
+            defense = st.number_input('Defesa', min_value=0)
+            spattack = st.number_input('Ataque Especial', min_value=0)
+        with coluna_c:
+            spdefense = st.number_input('Defesa Especial', min_value=0)
+            speed = st.number_input('Velocidade', min_value=0)
+        
+        st.markdown("### Tipos")
+        coluna_d, coluna_e, coluna_f, coluna_g, coluna_h, coluna_i = st.columns(6) 
+
+        with coluna_d:
+            grass = st.checkbox('Grass')
+            fire = st.checkbox('Fire')
+            water = st.checkbox('Water')
+        with coluna_e:
+            bug = st.checkbox('Bug')
+            normal = st.checkbox('Normal')
+            poison = st.checkbox('Poison')
+        with coluna_f:
+            electric = st.checkbox('Eletric')
+            ground = st.checkbox('Ground')
+            fairy = st.checkbox('Fairy')
+        with coluna_g:
+            fighting = st.checkbox('Fighting')
+            psychic = st.checkbox('Psychic')
+            rock = st.checkbox('Rock')
+        with coluna_h:
+            ghost = st.checkbox('Ghost')
+            ice = st.checkbox('Ice')
+            dragon = st.checkbox('Dragon')
+        with coluna_i:
+            dark = st.checkbox('Dark')
+            steel = st.checkbox('Steel')
+            flying = st.checkbox('Flying')
+        
+        is_evolution = st.checkbox('É uma evolução de outro Pokémon?')
+        submitted = st.form_submit_button('Confirmar')
+        if submitted:
+            previsao = modelo.predict([[hp, attack, defense, spattack, spdefense, speed,
+                is_evolution, bug, dark, dragon, electric, fairy,
+                fighting, fire, flying, ghost, grass, ground, ice,
+                normal, poison, psychic, rock, steel, water]])
             
+            if previsao == [0]:
+                st.markdown('#### Pokémon Comum')
+            if previsao == [1]:
+                st.markdown('#### Pokémon Lendário!')
+    
