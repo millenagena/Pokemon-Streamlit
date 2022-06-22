@@ -1,7 +1,6 @@
 import requests
 import streamlit as st
 import pickle
-import sklearn
 
 def get_pokemon_by_name(name):
     return requests.get(f'https://pokeapi.co/api/v2/pokemon/{name}')
